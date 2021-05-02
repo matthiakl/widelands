@@ -70,6 +70,7 @@ jobs:
         sphinx-build -W -b json -d build/doctrees source build/json
 
   clang_tidy:
+    if: github.repository == 'widelands/widelands'
     runs-on: ubuntu-latest
     steps:
     - name: Installing dependencies
@@ -173,7 +174,7 @@ jobs:
   windows:
     # Skip this job on master branch
     if: github.ref != 'refs/heads/master'
-    #needs: [clang_tidy, documentation, codecheck, includes]
+    needs: [clang_tidy, documentation, codecheck, includes]
     strategy:
       matrix:
         config:
@@ -188,9 +189,8 @@ jobs:
     - name: Installing dependencies
       run: |
         $env:Path += ";C:\msys64\usr\bin"
-        pacman.exe --noconfirm -Syyuu
-        pacman.exe --noconfirm -Syyuu
-        pacman.exe --noconfirm -S ca-certificates
+        pacman.exe --noconfirm -Syyuu --ignore ca-certificates
+        pacman.exe --noconfirm -Syyuu --ignore ca-certificates
         if ("${{ matrix.arch }}" -Match "x64") {
           $env:archname = "x86_64"
         } else {
