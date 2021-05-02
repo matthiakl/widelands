@@ -173,7 +173,7 @@ jobs:
   windows:
     # Skip this job on master branch
     if: github.ref != 'refs/heads/master'
-    needs: [clang_tidy, documentation, codecheck, includes]
+    #needs: [clang_tidy, documentation, codecheck, includes]
     strategy:
       matrix:
         config:
