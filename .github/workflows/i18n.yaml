@@ -23,3 +23,74 @@ jobs:
         git config --global user.name "The Widelands Translations Bot"
         git config --global user.email "bunnybot@widelands.org"
         ./utils/merge_and_push_translations.sh "https://bunnybot:${{ secrets.WIDELANDS_FORMAT_TOKEN }}@github.com/widelands/widelands.git"
+
+  check_vcpkg:
+    # TODO: change to 'widelands/widelands' when merging
+    if: github.repository == 'matthiakl/widelands'
+    name: Check vcpkg version
+    runs-on: windows-latest
+    env:
+      VCPKG_ROOT: C:\vcpkg
+      VCPKG_VERSION: ${{ github.workspace }}/utils/win32/vcpkg_version
+      CACHE: ${{ github.workspace }}/checked
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 1
+    - name: Restore transient info
+      uses: actions/cache@v2
+      with:
+        path: ${{ env.CACHE }}
+        key: any
+    - name: Check version
+      id: check
+      run: |
+        cd ${{ env.VCPKG_ROOT }}
+        $env:LAST = Get-Content ${{ env.VCPKG_VERSION }}
+        $env:HEAD = git rev-parse --short HEAD
+        $env:BRANCH = "vcpkg-$env:HEAD"
+        if ("$env:LAST" -Match "$env:HEAD") {
+          echo "No update availabe"
+          exit 0
+        } elseif ( Test-Path ${{ env.CACHE }} ) {
+          $env:CHECKED = Get-Content ${{ env.CACHE }}
+          if ( "$env:CHECKED" -Match "$env:HEAD" ) {
+            echo "Version $env:HEAD already checked"
+            exit 0
+          }
+        }
+        echo "vcpkg updated from $env:LAST to $env:HEAD"
+        echo "::set-output name=branch::$env:BRANCH"
+        echo "::set-output name=from::$env:LAST"
+        echo "::set-output name=to::$env:HEAD"
+    - name: Update version
+      if: steps.check.outputs.to != ''
+      id: update
+      run: |
+        git config --global user.name "bunnybot"
+        git config --global user.email "bunnybot@widelands.org"
+        # TODO: change to 'bunnybot' when merging
+        git remote add push_target https://matthiakl:${{ secrets.WIDELANDS_FORMAT_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git
+        git checkout -b ${{ steps.check.outputs.branch }}
+        Set-Content ${{ env.VCPKG_VERSION }} ${{ steps.check.outputs.to }}
+        Set-Content ${{ env.CACHE }} ${{ steps.check.outputs.to }}
+        git add ${{ env.VCPKG_VERSION }}
+        git commit -m "Update vcpkg"
+        git push push_target ${{ steps.check.outputs.branch }}
+    - name: Create pull request for ${{ steps.check.outputs.branch }}
+      if: steps.check.outputs.to != ''
+      id: create-pr
+      uses: actions/github-script@v2
+      with:
+        github-token: ${{secrets.WIDELANDS_FORMAT_TOKEN}}
+        script: |
+          github.pulls.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: "Update vcpkg to ${{ steps.check.outputs.to }}",
+            head: "${{ steps.check.outputs.branch }}",
+            base: "master",
+            body: `Update vcpkg from **[${{ steps.check.outputs.from }}](https://github.com/microsoft/vcpkg/commit/${{ steps.check.outputs.from }})** to **[${{ steps.check.outputs.to }}](https://github.com/microsoft/vcpkg/commit/${{ steps.check.outputs.to }})**`
+          })
