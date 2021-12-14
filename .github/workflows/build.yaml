@@ -191,6 +191,7 @@ jobs:
     runs-on: windows-latest
     env:
       VCPKG_ROOT: C:\vcpkg
+      VCPKG_VERSION: ${{ github.workspace }}/utils/win32/vcpkg_version
       VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg/bincache
       VCPKG_TARGET_TRIPLET: ${{ matrix.arch }}-windows-static
 
@@ -207,9 +208,12 @@ jobs:
       with:
         path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
         key: |
-          ${{ hashFiles( '.github/workflows/build.yaml' ) }}-${{ matrix.arch }}
+          ${{ hashFiles( '.github/workflows/build.yaml' ) }}-${{ hashFiles( ${{ env.VCPKG_VERSION }} ) }}-${{ matrix.arch }}
     - name: Installing dependencies
       run: |
+        cd ${{ env.VCPKG_ROOT }}
+        $env:LAST = Get-Content ${{ env.VCPKG_VERSION }}
+        git checkout $env:LAST
         vcpkg install --disable-metrics --triplet=${{ env.VCPKG_TARGET_TRIPLET }} boost gettext libpng icu glbinding sdl2 sdl2-ttf sdl2-mixer[libvorbis,libflac,mpg123] sdl2-image[libjpeg-turbo,tiff] graphite2 harfbuzz opusfile libwebp
     - name: Configure MSVC development console
       uses: ilammy/msvc-dev-cmd@v1
