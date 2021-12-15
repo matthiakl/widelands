@@ -1,0 +1,96 @@
+name: Build System Update
+on:
+  schedule:
+    # Friday at 3:00 a.m.
+    - cron: '0 3 * * 5'
+jobs:
+  check_vcpkg:
+    # TODO: change to 'widelands/widelands' when merging
+    if: github.repository == 'matthiakl/widelands'
+    name: Check vcpkg version
+    runs-on: windows-latest
+    env:
+      VCPKG_ROOT: C:\vcpkg
+      VCPKG_VERSION: ${{ github.workspace }}/utils/win32/vcpkg_version
+      CACHE: ${{ github.workspace }}/checked
+      # TODO: change to 'bunnybot' when merging
+      USER: matthiakl
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 1
+    - name: "Get HEAD"
+      id: prepare
+      run: |
+        cd ${{ env.VCPKG_ROOT }}
+        $env:HEAD = git rev-parse --short HEAD
+        echo "::set-output name=head::$env:HEAD"
+    - name: Restore cache
+      uses: actions/cache@v2
+      with:
+        path: ${{ env.CACHE }}
+        key: ${{ steps.prepare.outputs.head }}
+    - name: Check version
+      id: check
+      run: |
+        cd ${{ env.VCPKG_ROOT }}
+        $env:LAST = Get-Content ${{ env.VCPKG_VERSION }}
+        $env:HEAD = "${{ steps.prepare.outputs.head }}"
+        $env:BRANCH = "vcpkg-$env:HEAD"
+        if ("$env:LAST" -Match "$env:HEAD") {
+          echo "No update availabe"
+          exit 0
+        } elseif ( Test-Path ${{ env.CACHE }} ) {
+          $env:CHECKED = Get-Content ${{ env.CACHE }}
+          if ( "$env:CHECKED" -Match "$env:HEAD" ) {
+            echo "Version $env:HEAD already checked"
+            exit 0
+          }
+        }
+        echo "vcpkg updated from $env:LAST to $env:HEAD"
+        echo "::set-output name=branch::$env:BRANCH"
+        echo "::set-output name=from::$env:LAST"
+        echo "::set-output name=to::$env:HEAD"
+    - name: Update version
+      if: steps.check.outputs.to != ''
+      id: update
+      run: |
+        git config --global user.name "${{ env.USER }}"
+        git config --global user.email "${{ env.USER }}@widelands.org"
+        git remote add push_target https://${{ env.USER }}:${{ secrets.WIDELANDS_FORMAT_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git
+        git checkout -b ${{ steps.check.outputs.branch }}
+        Set-Content ${{ env.VCPKG_VERSION }} ${{ steps.check.outputs.to }}
+        Set-Content ${{ env.CACHE }} ${{ steps.check.outputs.to }}
+        git add ${{ env.VCPKG_VERSION }}
+        git commit -m "Update vcpkg"
+        git push push_target ${{ steps.check.outputs.branch }}
+    - name: Create pull request
+      if: steps.check.outputs.to != ''
+      id: create-pr
+      uses: actions/github-script@v2
+      with:
+        github-token: ${{secrets.WIDELANDS_FORMAT_TOKEN}}
+        script: |
+          let response = github.pulls.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: "Update vcpkg to ${{ steps.check.outputs.to }}",
+            head: "${{ steps.check.outputs.branch }}",
+            base: "master",
+            body: `Update vcpkg from **[${{ steps.check.outputs.from }}](https://github.com/microsoft/vcpkg/commit/${{ steps.check.outputs.from }})** to **[${{ steps.check.outputs.to }}](https://github.com/microsoft/vcpkg/commit/${{ steps.check.outputs.to }})**`
+          });
+          return response.data.number
+    - name: Set labels
+      if: steps.check.outputs.to != ''
+      uses: actions/github-script@v2
+      with:
+        github-token: ${{secrets.WIDELANDS_FORMAT_TOKEN}}
+        script: |
+          github.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number:  ${{ steps.create-pr.outputs.result }},
+              labels: ["building & packaging", "windows"]
+          })
