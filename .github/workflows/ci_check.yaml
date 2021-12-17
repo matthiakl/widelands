@@ -61,7 +61,7 @@ jobs:
       run: |
         git config --global user.name "${{ env.USER }}"
         git config --global user.email "${{ env.USER }}@widelands.org"
-        git remote add push_target https://${{ env.USER }}:${{ secrets.WIDELANDS_FORMAT_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git
+        git remote add push_target https://${{ env.USER }}:${{ secrets.WIDELANDS_FORMAT_TOKEN }}@github.com/${{ github.repository }}.git
         git checkout -b ${{ steps.check.outputs.branch }}
         Set-Content ${{ env.VCPKG_VERSION }} ${{ steps.check.outputs.to }}
         Set-Content ${{ env.CACHE }} ${{ steps.check.outputs.to }}
