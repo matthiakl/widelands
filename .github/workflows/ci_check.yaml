@@ -1,5 +1,7 @@
 name: Build System Update
 on:
+  push:
+  workflow_dispatch:
   schedule:
     # Friday at 3:00 a.m.
     - cron: '0 3 * * 5'
