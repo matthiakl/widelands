@@ -75,7 +75,7 @@ jobs:
       with:
         github-token: ${{secrets.WIDELANDS_FORMAT_TOKEN}}
         script: |
-          let response = github.pulls.create({
+          let response = await github.pulls.create({
             owner: context.repo.owner,
             repo: context.repo.repo,
             title: "Update vcpkg to ${{ steps.check.outputs.to }}",
