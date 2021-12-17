@@ -32,7 +32,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ${{ env.CACHE }}
-        key: ${{ steps.prepare.outputs.head }}
+        key: ${{ hashFiles( 'utils/win32/vcpkg_version' ) }}-${{ steps.prepare.outputs.head }}
     - name: Check version
       id: check
       run: |
@@ -80,7 +80,7 @@ jobs:
             title: "Update vcpkg to ${{ steps.check.outputs.to }}",
             head: "${{ steps.check.outputs.branch }}",
             base: "master",
-            body: `Update vcpkg from **[${{ steps.check.outputs.from }}](https://github.com/microsoft/vcpkg/commit/${{ steps.check.outputs.from }})** to **[${{ steps.check.outputs.to }}](https://github.com/microsoft/vcpkg/commit/${{ steps.check.outputs.to }})**`
+            body: `Update vcpkg from https://github.com/microsoft/vcpkg/commit/${{ steps.check.outputs.from }} to https://github.com/microsoft/vcpkg/commit/${{ steps.check.outputs.to }}`
           });
           return response.data.number
     - name: Set labels

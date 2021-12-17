@@ -208,7 +208,7 @@ jobs:
       with:
         path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
         key: |
-          ${{ hashFiles( '.github/workflows/build.yaml', '${{ env.VCPKG_VERSION }}' ) }}-${{ matrix.arch }}
+          ${{ hashFiles( '.github/workflows/build.yaml', 'utils/win32/vcpkg_version' ) }}-${{ matrix.arch }}
     - name: Installing dependencies
       run: |
         cd ${{ env.VCPKG_ROOT }}
