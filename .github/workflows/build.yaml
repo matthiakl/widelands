@@ -392,7 +392,7 @@ jobs:
     - name: Installing dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install git cmake ${{ matrix.compiler }} gettext libasio-dev libglew-dev libpng-dev libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev python3 zlib1g-dev -y      
+        sudo apt-get install git cmake ${{ matrix.compiler }} gettext libasio-dev libglew-dev libpng-dev libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev python3 zlib1g-dev -y
     - name: Checkout
       uses: actions/checkout@v2
     - name: Compile
@@ -413,14 +413,14 @@ jobs:
         popd
     - name: Build AppImage
       run: |
-        wget -nv -c https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
-        chmod +x linuxdeploy-x86_64.AppImage
-        ./linuxdeploy-x86_64.AppImage --executable AppDir/usr/bin/widelands --icon-file AppDir/usr/bin/images/logos/wl-ico-32.png --icon-filename org.widelands.Widelands --desktop-file xdg/org.widelands.Widelands.desktop --appdir AppDir --output appimage
+        wget -nv -c https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${{ env.HOSTTYPE }}.AppImage
+        chmod +x linuxdeploy-${{ env.HOSTTYPE }}.AppImage
+        ./linuxdeploy-${{ env.HOSTTYPE }}.AppImage --executable AppDir/usr/bin/widelands --icon-file AppDir/usr/bin/images/logos/wl-ico-32.png --icon-filename org.widelands.Widelands --desktop-file xdg/org.widelands.Widelands.desktop --appdir AppDir --output appimage
     - name: Upload Artifact
       uses: actions/upload-artifact@v2
       with:
         name: Widelands ${{ matrix.config }} ${{ matrix.compiler }} Linux AppImage
-        path: ${{ github.workspace }}/Widelands-${{ env.VERSION }}-x86_64.AppImage
+        path: ${{ github.workspace }}/Widelands-${{ env.VERSION }}-${{ env.HOSTTYPE }}.AppImage
 
   dev_release:
     name: Automated development pre-release
