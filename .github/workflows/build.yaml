@@ -413,14 +413,14 @@ jobs:
         popd
     - name: Build AppImage
       run: |
-        wget -nv -c https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${{ env.HOSTTYPE }}.AppImage
-        chmod +x linuxdeploy-${{ env.HOSTTYPE }}.AppImage
-        ./linuxdeploy-${{ env.HOSTTYPE }}.AppImage --executable AppDir/usr/bin/widelands --icon-file AppDir/usr/bin/images/logos/wl-ico-32.png --icon-filename org.widelands.Widelands --desktop-file xdg/org.widelands.Widelands.desktop --appdir AppDir --output appimage
+        wget -nv -c https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${HOSTTYPE}.AppImage
+        chmod +x linuxdeploy-${HOSTTYPE}.AppImage
+        ./linuxdeploy-${HOSTTYPE}.AppImage --executable AppDir/usr/bin/widelands --icon-file AppDir/usr/bin/images/logos/wl-ico-32.png --icon-filename org.widelands.Widelands --desktop-file xdg/org.widelands.Widelands.desktop --appdir AppDir --output appimage
     - name: Upload Artifact
       uses: actions/upload-artifact@v2
       with:
         name: Widelands ${{ matrix.config }} ${{ matrix.compiler }} Linux AppImage
-        path: ${{ github.workspace }}/Widelands-${{ env.VERSION }}-${{ env.HOSTTYPE }}.AppImage
+        path: ${{ github.workspace }}/Widelands-${{ env.VERSION }}-${HOSTTYPE}.AppImage
 
   dev_release:
     name: Automated development pre-release
