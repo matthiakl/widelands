@@ -40,11 +40,13 @@ jobs:
           ${{ steps.prepare.outputs.vcpkg_key }}-${{ matrix.arch }}
     - name: Installing dependencies
       run: |
-        Get-Command git
         choco install innosetup
         # Cache should have been populated by vcpkg-packages job
-        vcpkg install --triplet=${{ env.VCPKG_TARGET_TRIPLET }}  --disable-metrics harfbuzz opusfile libwebp
-        Get-Content C:/vcpkg/buildtrees/opusfile/config-*.log
+        vcpkg install --disable-metrics --triplet=${{ env.VCPKG_TARGET_TRIPLET }} harfbuzz opusfile libwebp \
+        || true
+        cat C:/vcpkg/buildtrees/opusfile/config-*.log
+        cat C:/vcpkg/installed/vcpkg/issue_body.md
+      shell: bash
     - name: Configure MSVC development console
       uses: ilammy/msvc-dev-cmd@v1
       with:
