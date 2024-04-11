@@ -42,7 +42,8 @@ jobs:
       run: |
         choco install innosetup
         # Cache should have been populated by vcpkg-packages job
-        ./install-dependencies.sh vcpkg --triplet=${{ env.VCPKG_TARGET_TRIPLET }}
+        ./install-dependencies.sh vcpkg --triplet=${{ env.VCPKG_TARGET_TRIPLET }} \
+        || cat C:/vcpkg/buildtrees/opusfile/config-*.log
       shell: bash
     - name: Configure MSVC development console
       uses: ilammy/msvc-dev-cmd@v1

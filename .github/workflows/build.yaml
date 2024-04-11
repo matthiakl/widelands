@@ -6,7 +6,7 @@ on:
   pull_request:
     types: [ opened, reopened, synchronize ]
   push:
-    branches: [ master, protected/* ]
+    branches: [ master, protected/*, test ]
 
 jobs:
   changes:
@@ -96,8 +96,8 @@ jobs:
     uses: ./.github/workflows/build_testsuite.yaml
 
   windows-msvc:
-    needs: [changes, pre-build_checks]
-    if: needs.changes.outputs.inst_windows_msvc == 'true'
+    # needs: [changes, pre-build_checks]
+    # if: needs.changes.outputs.inst_windows_msvc == 'true'
     uses: ./.github/workflows/build_windows_msvc.yaml
 
   windows:
