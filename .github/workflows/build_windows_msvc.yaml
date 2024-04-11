@@ -42,6 +42,11 @@ jobs:
       run: |
         choco install innosetup
         # Cache should have been populated by vcpkg-packages job
+        which git || true
+        echo $PATH
+        export PATH="C:\Program Files\Git\bin:$PATH" 
+        which git
+        echo $PATH
         ./install-dependencies.sh vcpkg --triplet=${{ env.VCPKG_TARGET_TRIPLET }} \
         || cat C:/vcpkg/buildtrees/opusfile/config-*.log
       shell: bash
