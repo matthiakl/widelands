@@ -40,16 +40,13 @@ jobs:
           ${{ steps.prepare.outputs.vcpkg_key }}-${{ matrix.arch }}
     - name: Installing dependencies
       run: |
+        Get-Command git
         choco install innosetup
         # Cache should have been populated by vcpkg-packages job
-        which git || true
-        echo $PATH
-        export PATH="C:\Program Files\Git\bin:$PATH" 
-        which git
-        echo $PATH
-        ./install-dependencies.sh vcpkg --triplet=${{ env.VCPKG_TARGET_TRIPLET }} \
-        || cat C:/vcpkg/buildtrees/opusfile/config-*.log
-      shell: bash
+        vcpkg install --triplet=${{ env.VCPKG_TARGET_TRIPLET }}  --disable-metrics $@ asio gettext[tools] libpng icu glbinding sdl2 sdl2-ttf \
+     sdl2-mixer[core,libflac,mpg123] sdl2-image[libjpeg-turbo,tiff] graphite2 \
+     harfbuzz opusfile libwebp
+        || Get-Content C:/vcpkg/buildtrees/opusfile/config-*.log
     - name: Configure MSVC development console
       uses: ilammy/msvc-dev-cmd@v1
       with:
